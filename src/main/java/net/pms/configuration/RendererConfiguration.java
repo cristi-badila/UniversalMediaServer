@@ -124,6 +124,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String MPEGTSH265AC3 = "MPEGTS-H265-AC3";
 	protected static final String MPEGPSMPEG2AC3 = "MPEGPS-MPEG2-AC3";
 	protected static final String MPEGTSMPEG2AC3 = "MPEGTS-MPEG2-AC3";
+	protected static final String STREAMMKV = "MKV-VIDEO-COPY-AC3";
 
 	// property names
 	protected static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
@@ -134,6 +135,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String CHARMAP = "CharMap";
 	protected static final String CHUNKED_TRANSFER = "ChunkedTransfer";
 	protected static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
+	protected static final String EXPLICIT_FFMPEG_OPTIONS = "ExplicitFFmpegOptions";
 	protected static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
 	protected static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
 	protected static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
@@ -1179,6 +1181,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getVideoTranscode().equals(MPEGTSH265AC3);
 	}
 
+	public boolean isTranscodeToMKV() {
+		return getVideoTranscode().equals(STREAMMKV);
+	}
+	
 	/**
 	 * @return whether to use the AC-3 audio codec for transcoded video
 	 */
@@ -1277,7 +1283,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (isUseMediaInfo()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToMPEGTSH264AC3()) {
+				if (isTranscodeToMKV()) {
+					matchedMimeType = "video/x-matroska";
+				} else if (isTranscodeToMPEGTSH264AC3()) {
 					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
 				} else if (isTranscodeToMPEGTSH264AAC()) {
 					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AAC_LC);
@@ -2256,6 +2264,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getString(CUSTOM_FFMPEG_OPTIONS, "");
 	}
 
+	public String getExplicitFFmpegOptions() {
+		return getString(EXPLICIT_FFMPEG_OPTIONS, "");
+	}
+	
 	public boolean isNoDynPlsFolder() {
 		return false;
 	}

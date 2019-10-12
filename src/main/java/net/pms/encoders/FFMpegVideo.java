@@ -1015,28 +1015,30 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		// Apply any video filters and associated options. These should go
-		// after video input is specified and before output streams are mapped.
-		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
+		if (renderer.getExplicitFFmpegOptions().isEmpty()) {
+			// Apply any video filters and associated options. These should go
+			// after video input is specified and before output streams are mapped.
+			cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
-		// Map the proper audio stream when there are multiple audio streams.
-		// For video the FFMpeg automatically chooses the stream with the highest resolution.
-		if (media.getAudioTracksList().size() > 1) {
-			/**
-			 * Use the first video stream that is not an attached picture, video
-			 * thumbnail or cover art.
-			 *
-			 * @see https://web.archive.org/web/20160609011350/https://ffmpeg.org/ffmpeg.html#Stream-specifiers-1
-			 * @todo find a way to automatically select proper stream when media
-			 *       includes multiple video streams
-			 */
-			cmdList.add("-map");
-			cmdList.add("0:V");
+			// Map the proper audio stream when there are multiple audio streams.
+			// For video the FFMpeg automatically chooses the stream with the highest resolution.
+			if (media.getAudioTracksList().size() > 1) {
+				/**
+				 * Use the first video stream that is not an attached picture, video
+				 * thumbnail or cover art.
+				 *
+				 * @see https://web.archive.org/web/20160609011350/https://ffmpeg.org/ffmpeg.html#Stream-specifiers-1
+				 * @todo find a way to automatically select proper stream when media
+				 *       includes multiple video streams
+				 */
+				cmdList.add("-map");
+				cmdList.add("0:V");
 
-			cmdList.add("-map");
-			cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
+				cmdList.add("-map");
+				cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
+			}	
 		}
-
+		
 		// Now configure the output streams
 
 		// Encoder threads
@@ -1059,6 +1061,13 @@ public class FFMpegVideo extends Player {
 			override = ((RendererConfiguration.OutputOverride) renderer).getOutputOptions(cmdList, dlna, this, params);
 		}
 
+		// Add custom options
+		String explicitFFmpegOptions = renderer.getExplicitFFmpegOptions();
+		if (StringUtils.isNotEmpty(explicitFFmpegOptions)) {
+			parseOptions(explicitFFmpegOptions, cmdList);
+			override = true;
+		}
+		
 		if (!override) {
 			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 
